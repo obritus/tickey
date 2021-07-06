@@ -1,0 +1,60 @@
+<div id="box_login">
+	<form action="/api/login" method="post">
+		<h1 class="h3 mb-3 fw-normal">Por favor, entre.</h1>
+
+		<div class="form-floating">
+			<input type="text" class="form-control" id="username" name="user" placeholder="Usuário" required>
+			<label for="username">Usuário</label>
+		</div>
+		<div class="form-floating">
+			<input type="password" class="form-control" id="password" name="password" placeholder="Senha" required>
+			<label for="password">Senha</label>
+		</div>
+
+		<div class="checkbox my-3">
+			<label>
+				<input type="checkbox" name="remember"> Lembrar-me
+			</label>
+		</div>
+		<button class="w-100 btn btn-lg btn-primary" type="submit">Entrar</button>
+	</form>
+</div>
+
+<script>
+	const ShowMessage = ({ msg, alertClass, textClass }) => {
+		const MessageBox = document.querySelector('#message-box div.toast')
+		const MessageText = document.querySelector('#message-text')
+		const Button = document.querySelector('[data-bs-dismiss="toast"]')
+		MessageText.innerHTML = msg
+		MessageBox.classList.remove('show', 'bg-danger', 'bg-success', 'text-light')
+		MessageBox.classList.add(`show`, `${alertClass}`)
+		const RemoveShow = () =>
+			MessageBox.classList.remove(`show`, `${alertClass}`)
+		Button.onclick = () => RemoveShow()
+		MessageBox.onclick = () => RemoveShow()
+	}
+
+	document.querySelector('form').addEventListener('submit', async e => {
+		e.preventDefault()
+		const login = e.target[0].value
+		const password = e.target[1].value
+		const keep = e.target[2].value
+
+		const Login = await fetch('/api/login', {
+			method: 'POST',
+			headers: {'Content-Type': 'application/json'},
+			body: JSON.stringify({ login, password, keep })
+		})
+
+		const Response = await Login.json()
+
+		if(Response.auth) {
+			window.location.href = '/dashboard'
+		} else {
+			ShowMessage({
+				msg: 'Ocorreu um erro ao efetuar login. Por favor, verifique as credenciais.',
+				alertClass: 'bg-danger'
+			})
+		}
+	})
+</script>

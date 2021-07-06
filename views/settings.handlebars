@@ -1,0 +1,251 @@
+<p class="m-0 fs-1">Configurações</p>
+<p class="mb-3">Configurações do site.</p>
+
+<div class="row">
+	<div class="col-xs-12">
+		<div class="card bg-secondary text-light mb-3">
+			<div class="card-header">
+				<h5 class="card-title p-0 m-0">Título do site</h5>
+			</div>
+			<div class="card-body">
+				<div class="input-group p-0 m-0">
+					<input type="text" class="form-control" placeholder="Título do site"
+						value="{{ configs.site_title }}" data-input="site_title">
+					<button class="btn btn-primary" type="button" data-btn="save_title">Salvar</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="col">
+		<div class="row">
+			<div class="col-md-4">
+				<div class="card bg-secondary text-light mb-3 h-100">
+					<div class="card-header">
+						<h5 class="card-title m-0 p-0">Banner principal</h5>
+					</div>
+					<div class="card-body d-flex align-content-between flex-wrap" data-id="default_banner">
+
+						<div data-id="empreendimento_box">
+							<img src="/images/empreendimentos/{{configs.default_banner._id}}/{{configs.default_banner.default_image.filename}}"
+								class="card-img-top" id="db_image" alt="test">
+							<p class="card-title h5 text-center py-1 m-0" id="db_title">{{configs.default_banner.title}}
+							</p>
+						</div>
+						<div class="input-group">
+							<select class="form-select" id="select_default_banner">
+								{{#each emps}}
+								<option value="{{_id}}">{{title}}</option>
+								{{/each}}
+							</select>
+							<button class="btn btn-primary" type="button" data-btn="save_db">Salvar</button>
+						</div>
+
+					</div>
+					<div class="card-footer"></div>
+				</div>
+			</div>
+			<div class="col-md-8">
+				<div class="card bg-secondary text-light h-100">
+					<div class="card-header">
+						<h5 class="card-title m-0 p-0">Empreendimentos em destaque</h5>
+					</div>
+					<form action="/" id="changeDestaques">
+						<div class="card-body row row-cols-3" data-id="destaques">
+							<div class="col">
+								<div class="card bg-secondary text-light h-100" id="dest_a">
+									{{#if configs.destaques.0.default_image.filename}}
+									<img src="/images/empreendimentos/{{configs.destaques.0._id}}/{{configs.destaques.0.default_image.filename}}"
+										class="card-img-top" alt="">
+									{{else}}
+									<img src="/images/default_image.jpg" class="card-img-top" alt="">
+									{{/if}}
+									<div class="card-body p-1 d-flex align-content-between flex-wrap">
+										<h5 class="card-title text-center">{{configs.destaques.0.title}}</h5>
+										<select class="form-select destaque" data-id="{{configs.destaques.0._id}}">
+											{{#each emps}}
+											<option value="{{_id}}">{{title}}</option>
+											{{/each}}
+										</select>
+									</div>
+								</div>
+							</div>
+
+							<div class="col">
+								<div class="card bg-secondary text-light h-100" id="dest_b">
+									{{#if configs.destaques.1.default_image.filename}}
+									<img src="/images/empreendimentos/{{configs.destaques.1._id}}/{{configs.destaques.1.default_image.filename}}"
+										class="card-img-top" alt="">
+									{{else}}
+									<img src="/images/default_image.jpg" class="card-img-top" alt="">
+									{{/if}}
+									<div class="card-body p-1 d-flex align-content-between flex-wrap">
+										<h5 class="card-title text-center">{{configs.destaques.1.title}}</h5>
+										<select class="form-select destaque" data-id="{{configs.destaques.1._id}}">
+											{{#each emps}}
+											<option value="{{_id}}">{{title}}</option>
+											{{/each}}
+										</select>
+									</div>
+								</div>
+							</div>
+
+							<div class="col">
+								<div class="card bg-secondary text-light h-100" id="dest_c">
+									{{#if configs.destaques.2.default_image.filename}}
+									<img src="/images/empreendimentos/{{configs.destaques.2._id}}/{{configs.destaques.2.default_image.filename}}" class="card-img-top" alt="">
+									{{else}}
+									<img src="/images/default_image.jpg" class="card-img-top" alt="">
+									{{/if}}
+									<div class="card-body p-1 d-flex align-content-between flex-wrap">
+										<h5 class="card-title text-center">{{configs.destaques.2.title}}</h5>
+										<select class="form-select destaque w-100" data-id="{{configs.destaques.2._id}}">
+											{{#each emps}}
+											<option value="{{_id}}">{{title}}</option>
+											{{/each}}
+										</select>
+									</div>
+								</div>
+							</div>
+							<button class="btn btn-primary text-dark w-100 mt-3">Salvar</button>
+						</div>
+					</form>
+					<div class="card-footer"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script>
+	const ShowMessage = ({msg, alertClass, textClass}) => {
+		const MessageBox = document.querySelector('#message-box div.toast')
+		const MessageText = document.querySelector('#message-text')
+		const Button = document.querySelector('[data-bs-dismiss="toast"]')
+		MessageText.innerHTML = msg
+		MessageBox.classList.remove('show', 'bg-danger', 'bg-success', 'text-light')
+		MessageBox.classList.add(`show`, `${alertClass}`)
+		const RemoveShow = () => 
+			MessageBox.classList.remove(`show`, `${alertClass}`)
+		Button.onclick = () => RemoveShow()
+		MessageBox.onclick = () => RemoveShow()
+	}
+
+	const RenderDefaultBanner = async e => {
+		e.preventDefault()
+		const _id = e.target.value
+		const Empreendimento = await fetch(`/api/empreendimentos/${_id}`)
+		const Response = await Empreendimento.json()
+
+		db_image.src = `/images/empreendimentos/${_id}/${Response.default_image.filename}`
+		db_title.innerHTML = `${Response.title}`
+	}
+
+	select_default_banner.value = '{{ configs.default_banner._id }}'
+	document.querySelector('#dest_a select').value = '{{ configs.destaques.0._id }}'
+	document.querySelector('#dest_b select').value = '{{ configs.destaques.1._id }}'
+	document.querySelector('#dest_c select').value = '{{ configs.destaques.2._id }}'
+
+	select_default_banner.addEventListener('change', RenderDefaultBanner)
+
+	const RenderDestaques = async e => {
+		const _idA = document.querySelector('#dest_a').dataset.id
+		const EmpreendimentoA = await fetch(`/api/empreendimentos/${_idA}`)
+		const ResponseA = await EmpreendimentoA.json()
+
+		const _idB = document.querySelector('#dest_b').dataset.id
+		const EmpreendimentoB = await fetch(`/api/empreendimentos/${_idB}`)
+		const ResponseB = await EmpreendimentoB.json()
+
+		const _idC = document.querySelector('#dest_c').dataset.id
+		const EmpreendimentoC = await fetch(`/api/empreendimentos/${_idC}`)
+		const ResponseC = await EmpreendimentoC.json()
+
+		document.querySelector('#dest_a img').src = 
+			'/images/empreendimentos/'
+		document.querySelector('#dest_b img').src = 
+			'/images/empreendimentos/'
+		document.querySelector('#dest_c img').src = 
+			'/images/empreendimentos/'
+		
+		document.querySelector('#dest_a .card-title').innerHTML = ''
+	}
+
+	document.querySelector('[data-btn="save_db"]').addEventListener('click', async e => {
+		e.preventDefault()
+		const default_banner = select_default_banner.value
+		const SaveDB = await fetch('/api/settings', {
+			method: 'PUT',
+			headers: {'Content-Type': 'application/json'},
+			body: JSON.stringify({ default_banner })
+		})
+		const Response = await SaveDB.json()
+		ShowMessage({
+			msg: Response.msg,
+			alertClass: 'bg-success'
+		})
+	})
+
+	document.querySelector('[data-btn="save_title"]').addEventListener('click', async e => {
+		e.preventDefault()
+		const site_title = document.querySelector('[data-input="site_title"]').value
+		const SaveTitle = await fetch('/api/settings', {
+			method: 'PUT',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ site_title })
+		})
+		const Response = await SaveTitle.json()
+		ShowMessage({
+			msg: Response.msg,
+			alertClass: 'bg-success'
+		})
+	})
+
+	document.querySelectorAll('.destaque').forEach(select => {
+		select.onchange = async e => {
+			const _id = select.value
+			const Empreendimento = await fetch(`/api/empreendimentos/${_id}`)
+			const Response = await Empreendimento.json()
+			const FileName = (Response.default_image)
+				? `empreendimentos/${_id}/${Response.default_image.filename}`
+				: `default_image.jpg`
+			const ImageFolder = `/images/${FileName}`
+			const ImageBox = e.path[2].children[0]
+			const TitleBox = e.path[2].children[1].children[0]
+			TitleBox.innerHTML = Response.title
+			ImageBox.src = ImageFolder
+		}
+	})
+
+	document.querySelector('#changeDestaques').onsubmit = async e => {
+		e.preventDefault()
+		const Valores = []
+
+		const A = e.target[0].value
+		const B = e.target[1].value
+		const C = e.target[2].value
+
+		Valores.push(A, B, C)
+
+		const ValoresUnicos = Valores.filter((value, index, self) => {
+			return self.indexOf(value) === index
+		})
+
+		if(Valores.toString() === ValoresUnicos.toString()) {
+			const SaveDestaques = await fetch('/api/settings', {
+				method: 'PUT',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ destaques: Valores })
+			})
+			const Response = await SaveDestaques.json()
+			ShowMessage({
+				msg: Response.msg,
+				alertClass: 'bg-success'
+			})
+		} else {
+			ShowMessage({
+				msg: "Os empreendimentos não podem ser iguais.",
+				alertClass: 'bg-danger'
+			})
+		}
+	}
+</script>

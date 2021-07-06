@@ -1,0 +1,6 @@
+{
+	"dartsass.outputFormat": "minified",
+	"dartsass.targetDirectory": "./public/css",
+	"dartsass.disableAutoPrefixer": true,
+	"workbench.panel.defaultLocation": "left"
+}

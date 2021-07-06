@@ -1,0 +1,42 @@
+<div data-id="flex-home">
+	<div class="card me-3 mb-3">
+		<a href="/dashboard/empreendimentos" class="card-link text-dark">
+			<div class="card-body text-center">
+				<h4>Empreendimentos</h4>
+				<h1 class="display-1 m-3">{{empreendimentos_number}}</h1>
+				<div class="d-grid">
+					<a href="/dashboard/empreendimentos/create" class="btn btn-primary text-light btn-lg">Adicionar empreendimento</a>
+				</div>
+			</div>
+		</a>
+	</div>
+	<div class="card me-3 mb-3">
+		<div class="card-body text-center">
+			<h4>Empreendimentos Publicados</h4>
+			<h1 class="display-1 m-0">{{emp_publicados_number}}</h1>
+		</div>
+	</div>
+	<div class="card me-3 mb-3">
+		<div class="card-body text-center">
+			<h4>Cidades</h4>
+			<h1 class="display-1 m-3">{{cidades_number}}</h1>
+			<div class="d-grid">
+				<a href="/dashboard/cidades" class="btn btn-primary text-light btn-lg">Ver</a>
+			</div>
+		</div>
+	</div>
+	<div class="card me-3 mb-3">
+		<div class="card-body text-center">
+			<h4>Bairros</h4>
+			<h1 class="display-1 m-0">{{bairros_number}}</h1>
+		</div>
+	</div>
+	<div class="card me-3 mb-3">
+		<div class="card-body">
+			<h4>Mensagens</h4>
+			<h1 class="display-1 m-0">
+				<span class="text-muted">{{messages_read_number}}</span>/{{messages_number}}
+			</h1>
+		</div>
+	</div>
+</div>

@@ -1,0 +1,283 @@
+<p class="m-0 fs-1">Editar empreendimento</p>
+<p class="mb-3"><em>{{_id}}</em></p>
+
+{{>_empreendimento_form}}
+
+<script type="text/javascript">
+	const Empreendimento = fetch('/api/empreendimentos/{{_id}}')
+	const Imagens = fetch('/api/images/{{_id}}')
+	const Cidades = fetch('/api/cidades/')
+
+	const GetBairro = (cidade_id, bairro_id) => {
+		if(cidade_id) {
+			bairroForm.innerHTML = null //LIMPA A LISTA ATUAL
+			const Bairro = fetch('/api/bairros/' + cidade_id)
+			Bairro
+				.then(response => response.json())
+				.then(bairros => {
+					bairros.map(({ _id, name }) => {
+						const Render = `<option value="${_id}">${name}</option>`
+						bairroForm.innerHTML += Render
+					})
+					bairroForm.value = bairro_id || null
+				})
+		}
+	}
+
+	const GetCidade = (cidade_id, bairro_id) => {
+		Cidades
+			.then(response => response.json())
+			.then(cidades => {
+				cidades.map(({ _id, name }) => {
+					const Render = `<option value="${_id}">${name}</option>`
+					cidadeForm.innerHTML += Render
+				})
+				cidadeForm.value = cidade_id || null
+				return GetBairro(cidade_id, bairro_id)
+			})
+	}
+
+	const EraseImage = _id => {
+		if(confirm('Deseja excluir essa imagem?')) {
+			fetch('/api/images/' + _id, { method: 'DELETE' })
+				.then(response => response.json())
+				.then(data => {
+					if(data.msg) {
+						//PEGAR O LABEL E O INPUT RADIO E APAGAR
+						document
+							.querySelectorAll(`
+								input[id="${_id}"],
+								label[for="${_id}"],
+								button[data-id="${_id}"]
+							`)
+							.forEach(i => i.remove())
+					}
+				})
+		}
+	}
+
+	const GetImagens = async ({ _id, filename, empreendimento }, default_image) => {
+		const imgUrl = `/images/empreendimentos/${empreendimento}/${filename}`
+
+		const divImagem = document.createElement('div')
+		const divRadio = document.createElement('input')
+		const divLabel = document.createElement('label')
+		const divP = document.createElement('p')
+		const eraseButton = document.createElement('button')
+
+		divRadio.type = 'radio'
+		divRadio.name = 'default_image'
+		divRadio.className = 'd-none'
+		divRadio.id = _id
+		divRadio.value = _id
+		divRadio.setAttribute('form', 'form_empreendimento')
+
+		divLabel.htmlFor = _id
+
+		divImagem.className = 'image'
+		eraseButton.dataset.id = _id
+		eraseButton.className = 'btn-close erase_button'
+		eraseButton.type = 'button'
+		eraseButton.title = 'Excluir imagem'
+		eraseButton.onclick = () => EraseImage(_id)
+		divP.innerHTML = 'Carregando...'
+
+		divImagem.appendChild(divP)
+		divLabel.appendChild(divImagem)
+		divLabel.appendChild(eraseButton)
+
+		document.getElementById('uploaded').appendChild(divRadio)
+		document.getElementById('uploaded').appendChild(divLabel)
+
+		setTimeout(() => {
+			divImagem.removeChild(divP)
+			divImagem.style.backgroundImage = `url(${imgUrl})`
+			if(default_image._id) {
+				document.querySelector(`input[value="${default_image._id}"]`)
+					.checked = true
+			} else {
+				document.querySelector(`input[name="default_image"]`)
+					.checked = true
+			}
+		}, 2000)
+	}
+
+	const ShowImagesBox = () => imagesBox.scrollIntoView()
+
+	Empreendimento
+		.then(response => response.json())
+		.then(empreendimento => {
+			const {
+				_id,
+				title,
+				type,
+				price,
+				categoria,
+				cidade,
+				bairro,
+				google_maps,
+				quartos,
+				suites,
+				banheiros,
+				vagas_garagem,
+				details,
+				status,
+				default_image
+			} = empreendimento
+			
+			console.log("Veio do BD", empreendimento)
+
+			titleForm.value = title
+			typeForm.value = type
+			categoriaForm.value = categoria
+			priceForm.value = price
+			quartosForm.value = quartos
+			suitesForm.value = suites
+			banheirosForm.value = banheiros
+			vagasForm.value = vagas_garagem
+			googleForm.value = google_maps
+			detailsForm.value = details
+			if(status) { statusForm.checked = true || false }
+			if(status == false) {
+				document.querySelector('[data-js="ocultar"]').innerHTML = 'Publicar'
+			}
+			HideCategoria(categoria)
+			imagesBox.classList.add('show')
+
+			fetch('/api/images/{{_id}}')
+				.then(response => response.json().then(data => {
+					const divImagens = document.getElementById('uploaded')
+					data.forEach(data => GetImagens(data, default_image))
+					document.querySelector('[data-js="total_images"]').innerHTML = data.length
+					btn_form.innerHTML = 'Aplicar alterações'
+
+					const cidade_id = (cidade) ? cidade._id : null
+					const bairro_id = (bairro) ? bairro._id : null
+					return GetCidade(cidade_id, bairro_id)
+				})
+				).catch(err => console.error(err))
+
+		}).catch(err => console.error(err))
+
+	cidadeForm.addEventListener('change', function (e) {
+		const cidade_id = this.value
+		GetBairro(cidade_id)
+	})
+
+	document.querySelector('#form_empreendimento')
+		.addEventListener('submit', function(e) {
+			e.preventDefault()
+
+			const DefaultImageCheck = () => {
+				if(document.querySelector('input[name="default_image"]:checked')) {
+					return document.querySelector('input[name="default_image"]:checked').value
+				} else {
+					return null
+				}
+			}
+
+			const dados = {
+				title: titleForm.value,
+				type: typeForm.value,
+				price: priceForm.value,
+				categoria: categoriaForm.value,
+
+				cidade: cidadeForm.value,
+				bairro: bairroForm.value,
+				google_maps: googleForm.value,
+
+				quartos: quartosForm.value,
+				suites: suitesForm.value,
+				banheiros: banheirosForm.value,
+				vagas_garagem: vagasForm.value,
+				details: detailsForm.value,
+
+				status: statusForm.checked,
+				default_image: DefaultImageCheck()
+			}
+
+			sessionStorage.setItem('dados', JSON.stringify(dados))
+
+			console.log("Dados enviados:", dados)
+
+			fetch('/api/empreendimentos/{{_id}}', {
+				method: 'PUT',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(dados)
+			})
+				.then(response => response.json())
+				.then(data => {
+					if (data.msg) {
+						ShowMessage({msg: data.msg, alertClass: 'bg-success'})
+						document.querySelector('body')
+							.scrollIntoView({ behavior: "smooth" })
+					}
+				})
+				.catch(err => console.error(err))
+		})
+
+	dropZone.ondragover = function (e) {
+		e.stopPropagation()
+		this.classList.add('active')
+		return false
+	}
+	dropZone.ondragleave = function (e) {
+		e.stopPropagation()
+		this.classList.remove('active')
+		return false
+	}
+	dropZone.ondrop = function (e) {
+		e.stopPropagation()
+		this.classList.remove('active')
+		const upload = files => {
+			const data = new FormData()
+			data.append('_id', '{{_id}}')
+
+			for (x = 0; x < files.length; x++) {
+				data.append('images', files[x])
+			}
+
+			fetch('/api/images', { method: 'POST', body: data })
+				.then(response => response.json())
+				.then(data => data.forEach(data => GetImagens(data)))
+				.catch(err => console.error(err))
+		}
+		e.preventDefault()
+		upload(e.dataTransfer.files)
+	}
+
+	document.querySelector('[data-js="ocultar"]').onclick = async e => {
+		const _id = e.target.dataset.id
+		const Ocultar = await fetch(`/api/empreendimentos/${_id}`, {
+			method: 'PUT',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ status: false })
+		})
+		const Response = await Ocultar.json()
+
+		if(Response.msg) {
+			window.location = '/dashboard/empreendimentos?status=false'
+		}
+	}
+
+	document.querySelector('[data-js="excluir"]').onclick = async e => {
+		const _id = e.target.dataset.id
+		if(confirm('Deseja realmente excluir essa publicação?')) {
+			const Deletar = await fetch(`/api/empreendimentos`, {
+				method: 'DELETE',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ _id })
+			})
+			const Response = await Deletar.json()
+
+			if (Response.msg) {
+				window.location = '/dashboard/empreendimentos/'
+			}
+		}
+	}
+
+	categoriaForm.addEventListener('change', e => {
+		const valor = e.target.value
+		HideCategoria(valor)
+	})
+</script>

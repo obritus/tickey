@@ -1,0 +1,83 @@
+<p class="m-0 fs-1">Mensagens</p>
+<p class="mb-3">Todas as mensagens enviadas do site.</p>
+
+<script>
+	const getMessage = id => {
+		document.querySelector(`[data-id="${id}"] .spinner-border`)
+			.classList.toggle('d-none')
+		fetch('/dashboard/messages/' + id)
+			.then(response => response.json())
+			.then(data => {
+				const createdAt = new Date(data.createdAt)
+
+				const meses = [
+					'Janeiro', 'Fevereiro', 'Março',
+					'Abril', 'Maio', 'Junho', 'Julho',
+					'Agosto', 'Setembro', 'Outubro',
+					'Novembro', 'Dezembro'
+				]
+
+				const dia = createdAt.getDate()
+				const mes = meses[createdAt.getMonth()]
+				const ano = createdAt.getFullYear()
+				const hora = createdAt.getHours()
+				const minutos = createdAt.getMinutes()
+				const date = `${dia} de ${mes} de ${ano}, às ${hora}h${minutos}`
+
+				document.querySelector('[data-js="name"]')
+					.innerHTML = data.name
+				document.querySelector('[data-js="email"]')
+					.innerHTML = data.email
+				document.querySelector('[data-js="message"]')
+					.innerHTML = data.message
+				document.querySelector('[data-js="date"]')
+					.innerHTML = date
+				document.querySelector('[data-js="btn-group"]')
+					.dataset.id = data._id
+
+				document.querySelector(`[data-id="${id}"] .spinner-border`)
+					.classList.toggle('d-none')
+
+				document.querySelector('[data-js="messageBox"]')
+					.classList.remove('d-none')
+			})
+			.catch(err => console.error(err))
+	}
+
+	const marcar_como_lida = () => {
+		//EXCLUIR UMA MENSAGEM
+		const id = document.querySelector('[data-js="btn-group"]').dataset.id
+		console.log(id)
+		if (confirm('Marcar como não lida?')) {
+			fetch('/dashboard/messages/' + id, {
+				method: 'put'
+			}).then(response => {
+				if (response.status == 200) {
+					if (document.querySelector(`[data-id="${id}"] .badge`)) {
+						document.querySelector(`[data-id="${id}"] .badge`)
+							.classList.add('d-none')
+					}
+					document.querySelector(`[data-js="messageBox"`)
+						.classList.add('d-none')
+				}
+			})
+		}
+	}
+
+	const excluir_mensagem = () => {
+		//EXCLUIR UMA MENSAGEM
+		const id = document.querySelector('[data-js="btn-group"]').dataset.id
+		if (confirm('Tem certeza que deseja excluir?')) {
+			fetch('/dashboard/messages/' + id, {
+				method: 'delete'
+			}).then(response => {
+				if (response.status == 200) {
+					document.querySelector(`[data-id="${id}"]`)
+						.classList.add('d-none')
+					document.querySelector(`[data-js="messageBox"`)
+						.classList.add('d-none')
+				}
+			})
+		}
+	}
+</script>

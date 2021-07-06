@@ -1,0 +1,240 @@
+<p class="m-0 fs-1" id="teste">Cidades e Bairros</p>
+<p class="mb-3">Cidades e bairros cadastrados no banco de dados.</p>
+
+<div class="container-flud mb-3">
+	<div class="card bg-secondary">
+		<div class="card-body">
+			<form action="/" id="addCidade">
+				<div class="input-group input-group-lg">
+					<input type="text" class="form-control" placeholder="Adicionar cidade" name="cidade" required>
+					<button class="btn btn-primary" type="subimit" title="Adicionar cidade"><img src="/images/add.svg" alt="Adicionar"></button>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+
+<div class="row row-cols-md-3 cidades">
+{{#each cidade}}
+	<div class="col mb-3" data-box="{{_id}}">
+		<div class="card bg-secondary text-light">
+			<div class="card-header d-flex justify-content-between align-items-center p-2">
+				<b data-id="{{_id}}">{{name}}</b>
+				<span class="badge bg-primary rounded-pill">0</span>
+			</div>
+			<div class="card-body">
+				<form action="/" class="formBairro" id="{{_id}}">
+					<div class="input-group mb-1">
+						<input type="text" class="form-control" placeholder="Adicionar bairro" name="bairro" data-id="form{{_id}}" required>
+						<button class="btn btn-primary" type="submit">Adicionar</button>
+					</div>
+				</form>
+			</div>
+			<ul class="bairros list-group list-group-flush table-hover" data-cidade="{{_id}}"></ul>
+			<div class="card-footer p-1">
+				<a class="card-link btn btn-danger text-light m-0 btn-sm" data-cidade="{{_id}}">Excluir cidade</a>
+			</div>
+		</div>
+	</div>
+{{/each}}
+</div>
+
+
+<script>
+	const RenderBairro = bairro => {
+		const TotalBairros = document
+			.querySelector(`[data-id="${bairro.cidade}"] + span`)
+		var valor = parseInt(TotalBairros.innerHTML)
+		valor++
+		TotalBairros.innerHTML = valor
+
+		const Li = document.createElement('li')
+		const A = document.createElement('a')
+		Li.className = 'list-group-item small p-1 bg-secondary text-light'
+		Li.setAttribute('data-bairro', bairro._id)
+		Li.title = `Excluir ${bairro.name}?`
+		Li.innerHTML = bairro.name
+
+		document
+			.querySelector(`.bairros[data-cidade="${bairro.cidade}"]`)
+			.appendChild(Li)
+	}
+
+	
+	const AddCollapse = (id, persist) => {
+		document.querySelectorAll(`.bairros`)
+			.forEach(ul => {
+				if (ul.dataset.cidade != id) {
+					ul.classList.remove('d-flex')
+				}
+			})
+
+		const ul = document.querySelector(`[data-cidade="${id}"]`)
+
+		if(persist) {
+			ul.classList.add('d-flex')
+		} else {
+			ul.classList.toggle('d-flex')
+		}
+	}
+
+
+	const AddDeleteBairro = () => {
+		document.querySelectorAll('.list-group-item').forEach(bd => {
+			const name = bd.innerHTML
+			bd.onclick = async () => {
+				if (confirm(`Deseja realmente excluir o bairro ${name}?`)) {
+					const id = bd.dataset.bairro
+					const data = { method: 'DELETE' }
+					const ExcluirBairro = await fetch(`/api/bairros/${id}`, data)
+					const Response = await ExcluirBairro.json()
+
+					if (Response.msg) {
+						document.querySelector(`[data-bairro="${id}"]`).remove()
+					}
+				}
+			}
+		})
+	}
+
+
+	const AddFormSender = () => {
+		document.querySelectorAll('.formBairro').forEach(form => {
+			form.onsubmit = async e => {
+				e.preventDefault()
+
+				const name = e.path[0][0].value
+				const cidade = e.target.id
+				const data = {
+					method: 'POST',
+					body: JSON.stringify({ name, cidade }),
+					headers: { 'Content-Type': 'application/json' }
+				}
+				const AddBairro = await fetch('/api/bairros', data)
+				const Response = await AddBairro.json()
+
+				if (Response.msg) {
+					e.path[0][0].value = ''
+					RenderBairro({ name, cidade, _id: Response._id })
+					AddCollapse(cidade, true)
+					AddDeleteBairro()
+				}
+			}
+		})
+	}
+
+
+	document.querySelectorAll('.card-header b').forEach(header => {
+		header.onclick = () => {
+			AddCollapse(header.dataset.id, false)
+		}
+	})
+	
+
+	document.querySelectorAll('.bairros').forEach(async div => {
+		const _id = div.dataset.cidade
+		const Bairros = await fetch('/api/bairros/' + _id)
+		const Response = await Bairros.json()
+
+		Response.forEach(RenderBairro)
+		AddDeleteBairro()
+	})
+
+
+	document.querySelectorAll('.card-link').forEach(cd => {
+		cd.onclick = async () => {
+			if(confirm(`Deseja realmente excluir? Também serão excluídos todos os bairros.`)) {
+				const id = cd.dataset.cidade
+				const data = { method: 'DELETE' }
+				const ExcluirCidade = await fetch(`/api/cidades/${id}`, data)
+				const Response = await ExcluirCidade.json()
+
+				if(Response.msg) {
+					document.querySelector(`[data-box="${id}"]`).remove()
+				}
+			}
+		}
+	})
+
+
+	document.querySelector('#addCidade').onsubmit = async e => {
+		e.preventDefault()
+
+		const name = e.path[0][0].value
+		const data = {
+			method: 'POST',
+			body: JSON.stringify({ name }),
+			headers: { 'Content-Type': 'application/json' }
+		}
+		const AddCidade = await fetch('/api/cidades', data)
+		const Response = await AddCidade.json()
+
+		if (Response.msg) {
+			const id = Response._id
+			const Col = document.createElement('div'),
+				Card = document.createElement('div'),
+				CardHeader = document.createElement('div'),
+				CardBody = document.createElement('div'),
+				InputGroup = document.createElement('div'),
+				CardFooter = document.createElement('div')
+			const B = document.createElement('b')
+			const Span = document.createElement('span')
+			const Form = document.createElement('form')
+			const Input = document.createElement('input')
+			const Button = document.createElement('button')
+			const Ul = document.createElement('ul')
+			const A = document.createElement('a')
+
+			Col.className = 'col mb-3'
+			Card.className = 'card'
+			CardHeader.className = 'card-header d-flex justify-content-between align-items-center p-2'
+			Span.className = 'badge bg-primary rounded-pill'
+			CardBody.className = 'card-body'
+			Form.className = 'formBairro'
+			InputGroup.className = 'input-group mb-1'
+			Input.className = 'form-control'
+			Button.className = 'btn btn-primary'
+			Ul.className = 'bairros list-group list-group-flush table-hover'
+			A.className = 'card-link btn btn-danger text-light m-0 btn-sm'
+			CardFooter.className = 'card-footer p-1'
+
+			Col.setAttribute('data-box', id)
+			B.setAttribute('data-id', id)
+			Form.setAttribute('action', '/')
+			Form.id = id
+			Input.setAttribute('type', 'text')
+			Input.setAttribute('placeholder', 'Adicionar bairro')
+			Input.setAttribute('name', 'bairro')
+			Input.setAttribute('data-id', `form${id}`)
+			Input.setAttribute('required', `required`)
+			Button.setAttribute('type', `submit`)
+			Ul.setAttribute('data-cidade', id)
+			CardFooter.setAttribute('data-cidade', id)
+			A.setAttribute('data-cidade', id)
+
+			B.innerHTML = e.path[0][0].value
+			Span.innerHTML = '0'
+			Button.innerHTML = 'Adicionar'
+			A.innerHTML = 'Excluir cidade'
+
+			Col.appendChild(Card)
+				Card.appendChild(CardHeader)
+					CardHeader.appendChild(B)
+					CardHeader.appendChild(Span)
+				Card.appendChild(CardBody)
+					CardBody.appendChild(Form)
+						Form.appendChild(InputGroup)
+							InputGroup.appendChild(Input)
+							InputGroup.appendChild(Button)
+				Card.appendChild(Ul)
+				Card.appendChild(CardFooter)
+					CardFooter.appendChild(A)
+
+			document.querySelector('.row-cols-md-3').appendChild(Col)
+			e.path[0][0].value = ''
+			AddFormSender()
+		}
+	}
+
+	AddFormSender()
+</script>

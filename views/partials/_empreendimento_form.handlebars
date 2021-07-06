@@ -1,0 +1,168 @@
+<div class="btn-group mb-4" role="group">
+	<button class="btn btn-primary" onclick="javascript:history.back()">Voltar</button>
+{{#if edit}}
+	<a href="#" class="btn btn-primary" data-id="{{_id}}" data-js="ocultar">Ocultar</a>
+	<a href="#" class="btn btn-danger" data-id="{{_id}}" data-js="excluir">Excluir Publicação</a>
+{{/if}}
+</div>
+
+<div class="row pb-5" id="data">
+	<form action="#" id="form_empreendimento" class="form" data-js="form_empreendimento">
+		<div class="row">
+			<div class="col-md-12">
+				<div class="mb-3">
+					<label for="titleForm" class="form-label">Título do anúncio</label>
+					<input type="text" class="form-control form-control-lg" id="titleForm" name="title" maxlength="40" required>
+				</div>
+			</div>
+
+			<div class="col-md-4">
+				<div class="mb-3">
+					<label for="categoriaForm" class="form-label">Categoria</label>
+					<select class="form-control form-select" id="categoriaForm" name="categoria" required>
+						<option value="1">Casa</option>
+						<option value="2">Apartamento</option>
+						<option value="3">Terreno</option>
+						<option value="4">Lote</option>
+						<option value="5">Kitnet</option>
+					</select>
+				</div>
+			</div>
+			<div class="col-md-4">
+				<div class="mb-3">
+					<label for="typeForm" class="form-label">Tipo</label>
+					<select class="form-control form-select" id="typeForm" name="type" required>
+						<option value="1">Aluguel</option>
+						<option value="2">Venda</option>
+					</select>
+				</div>
+			</div>
+			<div class="col-md-4">
+					<label for="priceForm" class="form-label">Preço/Aluguel</label>
+				<div class="input-group mb-3">
+					<span class="input-group-text" id="basic-addon1">R$</span>
+					<input type="text" class="form-control" id="priceForm" name="price" min="0" required>
+				</div>
+			</div>
+
+			<div class="col-md-4">
+				<div class="mb-3">
+					<label for="cidadeForm" class="form-label">Cidade</label>
+					<select class="form-control form-select" id="cidadeForm" name="cidade" required></select>
+				</div>
+			</div>
+			<div class="col-md-4">
+				<div class="mb-3">
+					<label for="bairroForm" class="form-label">Bairro</label>
+					<select class="form-control form-select form-control" id="bairroForm" name="bairro" required></select>
+				</div>
+			</div>
+			<div class="col-md-4">
+				<div class="mb-3">
+					<label for="googleForm" class="form-label">Google Maps</label>
+					<input type="text" class="form-control" id="googleForm"
+						title="Insira as coordenadas do empreendimento localizadas no Google Maps." name="google_maps"
+						placeholder="-00.000000000000000, -00.00000000000000" min="0">
+				</div>
+			</div>
+
+			<div class="col-md-3" data-categoria="false">
+				<div class="mb-3">
+					<label for="quartosForm" class="form-label">Quartos</label>
+					<input type="number" class="form-control" id="quartosForm" name="quartos" min="0">
+				</div>
+			</div>
+			<div class="col-md-3" data-categoria="false">
+				<div class="mb-3">
+					<label for="suitesForm" class="form-label">Suítes</label>
+					<input type="number" class="form-control" id="suitesForm" name="suites" min="0">
+				</div>
+			</div>
+			<div class="col-md-3" data-categoria="false">
+				<div class="mb-3">
+					<label for="banheirosForm" class="form-label">Banheiros</label>
+					<input type="number" class="form-control" id="banheirosForm" name="banheiros" min="0">
+				</div>
+			</div>
+			<div class="col-md-3" data-categoria="false">
+				<div class="mb-3">
+					<label for="vagasForm" class="form-label">Vagas Garagem</label>
+					<input type="number" class="form-control" id="vagasForm" name="vagas_garagem" min="0">
+				</div>
+			</div>
+
+			<div class="col-md-12">
+				<div class="mb-3">
+					<label for="detailsForm" class="form-label">Detalhes</label>
+					<textarea class="form-control" id="detailsForm" name="details" rows="7"></textarea>
+				</div>
+			</div>
+
+			<div class="col-md-12 mb-3">
+				<div class="form-check">
+					<input class="form-check-input form-lg" type="checkbox" id="statusForm" name="status">
+					<label class="form-check-label" for="statusForm">Publicado</label>
+				</div>
+			</div>
+
+			<div class="col-md-12" id="imagesBox">
+				<h2 class="my-3">Imagens</h2>
+				<div class="row">
+					<div class="col-md-12 mb-3">
+						<h4>Fazer upload</h4>
+						<p>Arraste imagens no formato .JPG ou .PNG.</p>
+						<div id="dropZone">
+							<p>Arraste os arquivos para cá.</p>
+						</div>
+					</div>
+					<div class="col-md-12">
+						<h4>Imagens atuais <span class="badge bg-info text-dark" data-js="total_images"></span></h4>
+						<p>Galeria atual do empreendimento.</p>
+						<div id="uploaded"></div>
+					</div>
+				</div>
+			</div>
+
+			<div class="col-md-12">
+				<button type="submit" class="btn btn-primary btn-lg" id="btn_form">Avançar</button>
+			</div>
+		</div>
+	</form>
+</div>
+
+<script>
+	const ShowMessage = ({ msg, alertClass, textClass }) => {
+		const MessageBox = document.querySelector('#message-box div.toast')
+		const MessageText = document.querySelector('#message-text')
+		const Button = document.querySelector('[data-bs-dismiss="toast"]')
+		MessageText.innerHTML = msg
+		MessageBox.classList.remove('show', 'bg-danger', 'bg-success', 'text-light')
+		MessageBox.classList.add(`show`, `${alertClass}`)
+		const RemoveShow = () =>
+			MessageBox.classList.remove(`show`, `${alertClass}`)
+		Button.onclick = () => RemoveShow()
+		MessageBox.onclick = () => RemoveShow()
+	}
+
+	const HideCategoria = v => {
+		const categorias = {
+			'3': true,
+			'4': true
+		}
+
+		if (categorias[v]) {
+			document.querySelectorAll('[data-categoria="false"]')
+				.forEach(e => e.classList.add('d-none'))
+			document.querySelectorAll('[data-categoria="false"] input')
+				.forEach(e => e.disabled = true)
+			typeForm.value = 2
+			typeForm.options[0].disabled = true
+		} else {
+			document.querySelectorAll('[data-categoria="false"]')
+				.forEach(e => e.classList.remove('d-none'))
+			document.querySelectorAll('[data-categoria="false"] input')
+				.forEach(e => e.disabled = false)
+			typeForm.options[0].disabled = false
+		}
+	}
+</script>

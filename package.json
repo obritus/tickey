@@ -1,0 +1,30 @@
+{
+  "name": "imobjs",
+  "version": "1.0.0",
+  "description": "Painel de controle e api da aplicação ImobJS.",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon index",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "builds": {
+    "src": "./index.js",
+    "use": "@vercel/node"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "crypto": "^1.0.1",
+    "dotenv": "^10.0.0",
+    "express": "^4.17.1",
+    "express-handlebars": "^5.1.0",
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^5.10.5",
+    "multer": "^1.4.2",
+    "sharp": "^0.28.2"
+  },
+  "devDependencies": {
+    "bootstrap": "^5.0.1"
+  }
+}

@@ -1,0 +1,165 @@
+<p class="m-0 fs-1">Empreendimentos {{ data.empreendimentos_length }}</p>
+<p class="mb-3">Gerenciar todos os empreendimentos cadastrados.</p>
+
+<div class="btn-group mb-3" role="group">
+	<a href="/dashboard/empreendimentos/create" class="btn btn-outline-success text-light">Adicionar novo</a>
+	<a href="/dashboard/empreendimentos" class="btn btn-outline-primary" data-id="on">Publicados</a>
+	<a href="/dashboard/empreendimentos?status=false" class="btn btn-outline-warning" data-id="off">Não publicados</a>
+</div>
+
+<table class="table table-striped table-dark table-hover table-borderless">
+	<thead class="table-light">
+		<tr>
+			<th scope="col">Título do Anúncio</th>
+			<th scope="col">Preço</th>
+			<th scope="col">Categoria</th>
+			<th scope="col">Tipo</th>
+			<th scope="col">Cidade</th>
+			<th scope="col">Bairro</th>
+			<th scope="col">Excluir</th>
+		</tr>
+	</thead>
+	<tbody class="d-none"></tbody>
+</table>
+
+<div class="d-flex justify-content-center spinner">
+	<div class="spinner-border text-light m-5" role="status">
+		<span class="visually-hidden">Loading...</span>
+	</div>
+</div>
+
+<div class="btn-toolbar" role="toolbar">
+	<div class="btn-group me-2" role="group" data-id="paginate"></div>
+</div>
+
+<script>
+	const ShowMessage = ({ msg, alertClass, textClass }) => {
+		const MessageBox = document.querySelector('#message-box div.toast')
+		const MessageText = document.querySelector('#message-text')
+		const Button = document.querySelector('[data-bs-dismiss="toast"]')
+		MessageText.innerHTML = msg
+		MessageBox.classList.remove('show', 'bg-danger', 'bg-success', 'text-light')
+		MessageBox.classList.add(`show`, `${alertClass}`)
+		const RemoveShow = () =>
+			MessageBox.classList.remove(`show`, `${alertClass}`)
+		Button.onclick = () => RemoveShow()
+		MessageBox.onclick = () => RemoveShow()
+	}
+	
+	const Confirm = () => {
+		const ConfirmBox = document.querySelector('.confirm-container')
+		const MessageText = document.querySelector('#message-text')
+		const TrueButton = document.querySelector('button[data-btn="true"]')
+		const FalseButton = document.querySelector('button[data-btn="false"]')
+		ConfirmBox.classList.remove('visible')
+		ConfirmBox.classList.add(`visible`)
+		const RemoveShow = () =>
+			ConfirmBox.classList.remove(`visible`)
+		
+		TrueButton.onclick = () => RemoveShow()
+		FalseButton.onclick = () => RemoveShow()
+		ConfirmBox.onclick = () => RemoveShow()
+	}
+
+	const QuerySearch = document.location.search
+
+	if (QuerySearch.includes('status=false')) {
+		document.querySelector('[data-id="off"]').classList.add('active')
+	} else {
+		document.querySelector('[data-id="on"]').classList.add('active')
+	}
+
+	const Empreendimentos = fetch(`http://localhost:3001/api/empreendimentos${QuerySearch}`)
+	const Tabela = document.querySelector('tbody')
+	const Spinner = document.querySelector('.spinner')
+
+	Empreendimentos
+		.then(response => response.json())
+		.then(empreendimentos => {
+			const options = {
+				style: 'currency',
+				currency: 'BRL',
+				minimumIntegerDigits: 2
+			}
+			const Price = p => new Intl.NumberFormat('pt-BR', options).format(p)
+			const Categoria = c => {
+				const categorias = {
+					"1": "Casa",
+					"2": "Apartamento",
+					"3": "Terreno",
+					"4": "Lote",
+					"5": "Kitnet",
+				}
+				return categorias[c]
+			}
+			const Type = t => {
+				const type = {
+					"1": "Venda",
+					"2": "Aluguel"
+				}
+				return type[t]
+			}
+			const Result = empreendimentos.data.map(({ _id, title, price, status, categoria, cidade, bairro, type }) => {
+				const QueryAtual = (QuerySearch) ? QuerySearch + '&' : '?'
+				return (`<tr data-id="${_id}">
+					<td>
+						<a href="empreendimentos/edit/${_id}" title="Editar empreendimento">${title}</a>
+					</td>
+					<td>${Price(price)}</td>
+					<td><a href="${QueryAtual}categoria=${categoria}">${Categoria(categoria)}</a></td>
+					<td><a href="${QueryAtual}type=${type}">${Type(type)}</a></td>
+					<td><a href="${QueryAtual}cidade=${(cidade) ? cidade._id : ''}">${(cidade) ? cidade.name : ''}</a></td>
+					<td><a href="${QueryAtual}cidade=${(cidade) ? cidade._id : ''}&bairro=${(bairro) ? bairro._id : ''}">${(bairro) ? bairro.name : ''}</a></td>
+					<td class="text-center align-middle">
+						<button type="button" class="btn-close btn-close-white erase" title="Excluir empreendimento" data-id="${_id}"></button>
+					</td>
+				</tr>`)
+			}).join('')
+
+			Tabela.innerHTML += Result
+			Tabela.classList.remove('d-none')
+			Spinner.classList.add('d-none')
+
+			// BOTÃO PARA EXCLUIR UM EMPREENDIMENTO
+			document.querySelectorAll('.erase').forEach(e => {
+				e.addEventListener('click', function (e) {
+					const id = this.dataset.id
+					if (confirm('Deseja realmente excluir esta publicação?')) {
+						fetch('/api/empreendimentos', {
+							method: 'DELETE',
+							headers: { "Content-Type": "application/json" },
+							body: JSON.stringify({ _id: id })
+						})
+							.then(response => response.json())
+							.then(() => {
+								document
+									.querySelector(`tr[data-id="${id}"]`).remove()
+							})
+							.catch(err => alert(err))
+					}
+				})
+			})
+
+			const TotalEmpreendimentos = () => {
+				if (QuerySearch.includes('status=false')) {
+					return empreendimentos.all_off
+				} else {
+					return empreendimentos.all_on
+				}
+			}
+			if(TotalEmpreendimentos() > 15) {
+				const PaginateBox = document.querySelector('[data-id="paginate"]')
+				const Pages = Math.ceil(parseInt(TotalEmpreendimentos()) / 15)
+
+				for(x = 1; x <= Pages; x++) {
+					const Button = document.createElement('a')
+					Button.className = 'btn btn-primary'
+					Button.innerHTML = x
+					Button.setAttribute('href', `?page=${x}`)
+
+					PaginateBox.appendChild(Button)
+				}
+			}
+
+		}).catch(err => console.error(err))
+</script>
