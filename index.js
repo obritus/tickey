@@ -1,4 +1,4 @@
-require('dotenv')
+require('dotenv').config()
 const express = require('express')
 const cors = require('cors')
 const cookieParser = require('cookie-parser')
@@ -16,7 +16,7 @@ const mongoose = require('mongoose')
 app
 	// REQ BODY EXPRESS
 	.use(cors())
-	.use(cookieParser('df496ae9b59e2fac25aedcf1feddcb13'))
+	.use(cookieParser())
 	.use(express.urlencoded({ extended: true }))
 	.use(express.json())
 
